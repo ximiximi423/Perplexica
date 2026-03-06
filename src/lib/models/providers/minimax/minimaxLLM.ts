@@ -86,6 +86,10 @@ class MiniMaxLLM extends OpenAILLM {
         }
       }
 
+      if (chunk.done && !insideThinkTag && buffer.length > 0) {
+        output += buffer;
+        buffer = '';
+      }
       const hasToolCalls = chunk.toolCallChunk && chunk.toolCallChunk.length > 0;
       if (output || chunk.done || hasToolCalls) {
         yield {
