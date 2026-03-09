@@ -56,12 +56,16 @@ class MiniMaxLLM extends OpenAILLM {
       buffer += chunk.contentChunk;
 
       let output = '';
+      const isStreamEnd = chunk.done;
 
       while (buffer.length > 0) {
         if (!insideThinkTag) {
           const thinkStart = buffer.indexOf(THINK_START);
           if (thinkStart === -1) {
-            if (buffer.length >= THINK_START.length - 1) {
+            if (isStreamEnd) {
+              output += buffer;
+              buffer = '';
+            } else if (buffer.length >= THINK_START.length - 1) {
               const safeLength = buffer.length - (THINK_START.length - 1);
               output += buffer.slice(0, safeLength);
               buffer = buffer.slice(safeLength);
@@ -75,7 +79,9 @@ class MiniMaxLLM extends OpenAILLM {
         } else {
           const thinkEnd = buffer.indexOf(THINK_END);
           if (thinkEnd === -1) {
-            if (buffer.length >= THINK_END.length - 1) {
+            if (isStreamEnd) {
+              buffer = '';
+            } else if (buffer.length >= THINK_END.length - 1) {
               buffer = buffer.slice(-(THINK_END.length - 1));
             }
             break;
